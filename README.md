@@ -78,6 +78,16 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
     ```
     By default, the script resizes the images to be 540px in height to reduce the running time. If you would like to run the model with other resolutions, please pass the arguments `--image_width XXX` and `--image_height XXX`.
 
+### If COLMAP outputs .bin files instead of .txt files?
+
+The newer versions of COLMAP output ``.bin`` files instead of ``.txt`` files for sparse reconstruction. Please modify their source code by:
+```
+colmap/src/base/undistortion.cc:171
+- undistorted_reconstruction.Write(JoinPaths(output_path_, "sparse"));
++ undistorted_reconstruction.WriteText(JoinPaths(output_path_, "sparse"));
+```
+Now the ``image_undistorter`` should output ``.txt`` files for sparse reconstruction.
+
 ## License
 
 DeepMVS is licensed under the [BSD 2-Clause License](LICENSE.txt)
