@@ -14,7 +14,7 @@ import imageio
 
 from model import DeepMVS
 from generate_volume_test import generate_volume_test
-from colmap_helpers import ColmapSparse
+
 
 # Parse arguments
 parser = argparse.ArgumentParser(description = "Run DeepMVS on a sequence.")
@@ -30,6 +30,7 @@ parser.add_argument("--no_gpu", dest = "use_gpu", action = "store_false", defaul
 parser.add_argument("--image_path", dest = "image_path", help = "Path to the images.", required = True)
 parser.add_argument("--sparse_path", dest = "sparse_path", help = "Path to the sparse reconstruction.", required = True)
 parser.add_argument("--output_path", dest = "output_path", help = "Path to store the results.", required = True)
+parser.add_argument("--load_bin", dest = "load_bin", type = bool, default = False, help = "Set if you want to load COLMAP .bin files")
 parser.add_argument("--model_path", dest = "model_path", help = "Path to the trained model.", default = (
 		os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "model", "DeepMVS_final.model")
 	))
@@ -54,6 +55,11 @@ model_path = args.model_path
 overwrite = args.overwrite
 log_file = args.log_file
 batch_size = 1
+
+if args.load_bin:
+	from colmap_helpers_for_bin import ColmapSparse
+else:
+	from colmap_helpers import ColmapSparse
 
 # Constants for DenseCRF.
 sigma_xy = 80.0
