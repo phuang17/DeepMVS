@@ -69,24 +69,14 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
     python python/download_trained_model.py
     ```
 
-2. Run the sparse reconstruction and the ``image_undistorter`` using [COLMAP](https://colmap.github.io/). The ``image_undistorter`` will generate a ``images`` folder which contains undistorted images and a ``sparse`` folder which contains three ``.txt`` files.
-
+2. Run the sparse reconstruction and the ``image_undistorter`` using [COLMAP](https://colmap.github.io/). The ``image_undistorter`` will generate a ``images`` folder which contains undistorted images and a ``sparse`` folder which contains three ``.bin`` files.
 
 3. Run the testing script with the paths to the undistorted images and the sparse construction model.
     ```bash
-    python python/test.py --image_path path/to/images --sparse_path path/to/sparse --output_path path/to/output/directory
+    python python/test.py --load_bin --image_path path/to/images --sparse_path path/to/sparse --output_path path/to/output/directory
     ```
     By default, the script resizes the images to be 540px in height to reduce the running time. If you would like to run the model with other resolutions, please pass the arguments `--image_width XXX` and `--image_height XXX`.
-
-### If COLMAP outputs .bin files instead of .txt files?
-
-The newer versions of COLMAP output ``.bin`` files instead of ``.txt`` files for sparse reconstruction. Please modify their source code by:
-```
-colmap/src/base/undistortion.cc:171
-- undistorted_reconstruction.Write(JoinPaths(output_path_, "sparse"));
-+ undistorted_reconstruction.WriteText(JoinPaths(output_path_, "sparse"));
-```
-Now the ``image_undistorter`` should output ``.txt`` files for sparse reconstruction.
+    If your COLMAP outputs ``.txt`` files instead of ``.bin`` files for the sparse reconstruction, simply remove the `--load_bin` flag.
 
 ## License
 
