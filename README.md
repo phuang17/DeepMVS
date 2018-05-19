@@ -43,6 +43,7 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
     ```bash
     python python/download_training_datasets.py # This may take up to 1-2 days to complete.
     ```
+    **Update: The training datasets have been updated on May 18, 2018 because of some errors in camera poses. Please remove the files and download them again if you have downloaded the old version.**
 2. Train the network.
     ```bash
     python python/train.py # This may take up to 4-6 days to complete, depending on which GPU is used.
