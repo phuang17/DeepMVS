@@ -35,7 +35,7 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
     ```
 - **h5py 2.7.0**: Run ``conda install h5py`` or ``pip install h5py``.
 - **lz4 0.23.1**: Run ``pip install lz4``.
-- **cuda 8.0.61** and **16GB GPU RAM** (required for gpu support): The training codes use up to 14GB of the GPU RAM with the default configuration. We train our model with an NVIDIA Tesla P100 GPU. 
+- **cuda 8.0.61** and **16GB GPU RAM** (required for gpu support): The training codes use up to 14GB of the GPU RAM with the default configuration. We train our model with an NVIDIA Tesla P100 GPU. To reduce GPU RAM usage, feel free to try smaller ``--patch_width``, ``--patch_height``, ``--num_depths``, and ``--max_num_neighbors``. However, the resulting model may not show the efficacy as appeared in our paper.
 
 ### Instructions
 
