@@ -74,7 +74,10 @@ https://github.com/lmb-freiburg/demon/blob/master/datasets/download_traindata.sh
 						depth = depth.reshape(dimension[0], dimension[1])
 						imageio.imwrite(os.path.join(path, dataset_name, "{:04d}".format(seq_idx), "depths", "{:04d}.exr".format(f_idx)), depth, flags = freeimage.IO_FLAGS.EXR_ZIP)
 					elif dt_type == "image":
-						img = imageio.imread(img.tobytes(), format = "RAW-FI")
+						try:
+							img = imageio.imread(img.tobytes(), format = "RAW-FI")
+						except:
+							img = imageio.imread(img.tobytes())
 						imageio.imwrite(os.path.join(path, dataset_name, "{:04d}".format(seq_idx), "images", "{:04d}.png".format(f_idx)), img)
 		with open(os.path.join(path, dataset_name, "num_images.json"), "w") as output_file:
 			json.dump(num_images, output_file)
