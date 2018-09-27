@@ -79,6 +79,12 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
     By default, the script resizes the images to be 540px in height to reduce the running time. If you would like to run the model with other resolutions, please pass the arguments `--image_width XXX` and `--image_height XXX`.
     If your COLMAP outputs ``.txt`` files instead of ``.bin`` files for the sparse reconstruction, simply remove the `--load_bin` flag.
 
+4. To evaluate the predicted results, run
+    ```bash
+    python python/eval.py --load_bin --image_path path/to/images --sparse_path path/to/sparse --output_path path/to/output/directory --gt_path path/to/gt/directory
+    ```
+    In ``gt_path``, the ground truth disparity maps should be stored in npy format with filenames being ``<image_name>.depth.npy``. If the ground truths are depth maps instead of disparity maps, please add ``--gt_type depth`` flag.
+
 ## License
 
 DeepMVS is licensed under the [BSD 2-Clause License](LICENSE.txt)
