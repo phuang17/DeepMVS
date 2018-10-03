@@ -15,12 +15,20 @@ parser.add_argument("--load_bin", dest = "load_bin", type = bool, default = Fals
 # TODO: Support --gt_type = "colmap_bin"
 parser.add_argument("--gt_type", dest = "gt_type", choices = ["depth", "disparity"], default = "disparity", help = "Specify whether the ground truth depth files store depth or disparity (=1/depth).")
 parser.add_argument("--output_type", dest = "output_type", choices = ["depth", "disparity"], default = "disparity", help = "Specify whether the predicted depth files store depth value or disparity (=1/depth).")
-parser.add_argument("--image_width", dest = "image_width", type = int, default = -1, help = "Image width (<0 means to derive from image_height).")
-parser.add_argument("--image_height", dest = "image_height", type = int, default = 540, help = "Image height (<0 means to derive from image_width).")
+parser.add_argument("--image_width", dest = "image_width", type = int, help = "Image width (>0).", required = True)
+parser.add_argument("--image_height", dest = "image_height", type = int, help = "Image height (>0).", required = True)
 parser.add_argument("--skip_rephoto", dest = "skip_rephoto", action = "store_true", default = False, help = "Skip rephoto error to speed up evaluation.")
 parser.add_argument("--store_rephoto", dest = "store_rephoto", action = "store_true", default = False, help = "Store the rephotography result using the predicted depths to <output_path>/rephoto.")
 # Set border = 6 since COLMAP predicts unuseful values for the borders.
 parser.add_argument("--border", dest = "border", type = int, default = 6, help = "Width of the borders to ignore from evaluation.")
+parser.add_argument("--size_mismatch", dest = "size_mismatch", choices = ["throw", "crop_pad", "resize"], default = "throw", 
+	help = 
+"""Specify what to do if the size of depth maps do not match the specified image_width and image_height.
+"throw": throw an error.
+"crop_pad": crop or pad the depth maps.
+"resize": resample the depth maps using nearest neighbor sampling.
+"""
+	)
 
 args = parser.parse_args()
 
@@ -36,11 +44,37 @@ image_height = args.image_height
 skip_rephoto = args.skip_rephoto
 store_rephoto = args.store_rephoto
 border = args.border
+size_mismatch = args.size_mismatch
 
 if args.load_bin:
 	from colmap_helpers_for_bin import ColmapSparse
 else:
 	from colmap_helpers import ColmapSparse
+
+# Crop or pad the depth map to specific size.
+def crop_pad(img, w, h):
+	img_w = img.shape[1]
+	img_h = img.shape[0]
+	if img_w > w:
+		padding = (img_w - w) / 2
+		img = img[:,padding:padding+w]
+	elif img_w < w:
+		padding_pre = (w - img_w) / 2
+		padding_post = w - img_w - padding_pre
+		img = np.pad(img, ((0,0), (padding_pre,padding_post)), "edge")
+	if img_h > h:
+		padding = (img_h - h) / 2
+		img = img[padding:padding+h,:]
+	elif img_h < h:
+		padding_pre = (h - img_h) / 2
+		padding_post = h - img_h - padding_pre
+		img = np.pad(img, ((padding_pre,padding_post), (0,0)), "edge")
+	return img
+
+# Resize the depth map to specific size.
+def resize(img, w, h):
+	img = cv2.resize(img, (w, h), interpolation = cv2.INTER_NEAREST)
+	return img
 
 # Compute rephoto error.
 def get_rephoto_diff(rephoto_path, sparse_model, frame_idx, predict_depth, mask = None):
@@ -127,6 +161,16 @@ for (frame_idx, frame) in enumerate(sparse_model.image_list.images):
 
 	# Load ground truth depths.
 	gt_depth = np.load("{:}/{:}.depth.npy".format(gt_path, frame.filename))
+	gt_depth = np.pad(gt_depth, ((0,0), (15,15)), "edge")
+	if gt_depth.shape[0] != image_height or gt_depth.shape[1] != image_width:
+		if size_mismatch == "throw":
+			raise RuntimeError("Invalid size of gt_depth. gt_depth has size = {:} but the specified image size = ({:d}, {:d}).".format(gt_depth.shape, image_height, image_width))
+		elif size_mismatch == "crop_pad":
+			gt_depth = crop_pad(gt_depth, image_width, image_height)
+		elif size_mismatch == "resize":
+			gt_depth = resize(gt_depth, image_width, image_height)
+		else:
+			raise ValueError("size_mismatch is not supported")
 	if border > 0:
 		gt_depth = gt_depth[border:-border, border:-border]
 	if gt_type == "depth":
@@ -140,6 +184,15 @@ for (frame_idx, frame) in enumerate(sparse_model.image_list.images):
 	
 	# Load predicted depths.
 	output_depth = np.load("{:}/{:}.output.npy".format(output_path, frame.filename))
+	if output_depth.shape[0] != image_height or output_depth.shape[1] != image_width:
+		if size_mismatch == "throw":
+			raise RuntimeError("Invalid size of output_depth. output_depth has size = {:} but the specified image size = ({:d}, {:d}).".format(output_depth.shape, image_height, image_width))
+		elif size_mismatch == "crop_pad":
+			output_depth = crop_pad(output_depth, image_width, image_height)
+		elif size_mismatch == "resize":
+			output_depth = resize(output_depth, image_width, image_height)
+		else:
+			raise ValueError("size_mismatch is not supported")
 	if border > 0:
 		output_depth = output_depth[border:-border, border:-border]
 	if output_type == "depth":
@@ -150,6 +203,8 @@ for (frame_idx, frame) in enumerate(sparse_model.image_list.images):
 		output_valid = output_depth >= 0.0
 	else:
 		raise ValueError("output_type is not supported")
+	
+	
 	
 	# Compute L1 error.
 	valid_mask = np.logical_and(gt_valid, output_valid)

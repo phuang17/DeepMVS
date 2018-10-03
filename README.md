@@ -81,7 +81,7 @@ For the paper and other details of DeepMVS or the MYS-Synth Dataset, please see 
 
 4. To evaluate the predicted results, run
     ```bash
-    python python/eval.py --load_bin --image_path path/to/images --sparse_path path/to/sparse --output_path path/to/output/directory --gt_path path/to/gt/directory
+    python python/eval.py --load_bin --image_path path/to/images --sparse_path path/to/sparse --output_path path/to/output/directory --gt_path path/to/gt/directory --image_width 810 --image_height 540 --size_mismatch crop_pad
     ```
     In ``gt_path``, the ground truth disparity maps should be stored in npy format with filenames being ``<image_name>.depth.npy``. If the ground truths are depth maps instead of disparity maps, please add ``--gt_type depth`` flag.
 
