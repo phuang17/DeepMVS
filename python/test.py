@@ -144,7 +144,7 @@ for (ref_image_idx, ref_image) in enumerate(sparse_model.image_list.images):
 	image_height = ref_camera.height
 	shared_data["ready_e"].wait()
 	ref_img_full = shared_data["ref_img_full"]
-	VGG_tensor = Variable(VGG_normalize(torch.FloatTensor(ref_img_full)).permute(2, 0, 1).unsqueeze(0), volatile = True)
+	VGG_tensor = Variable(VGG_normalize(torch.FloatTensor(ref_img_full).permute(2, 0, 1)).unsqueeze(0), volatile = True)
 	if use_gpu:
 		VGG_tensor = VGG_tensor.cuda()
 	VGG_scaling_factor = 0.01
